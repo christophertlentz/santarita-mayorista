@@ -1,1 +1,409 @@
-<p>contact works!</p>
+<!-- HEADER DE CONTACTO -->
+<section class="contact-hero text-white py-5 py-lg-6 position-relative">
+  <div class="container py-3">
+    <div class="row align-items-center g-4">
+      <div class="col-12 col-lg-8 text-center text-lg-start">
+        <!-- Badge superior con fondo contrastante y texto real -->
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-light border border-success-subtle shadow-sm mb-3">
+          <span class="badge bg-success text-white rounded-pill px-2 py-1 small">📍 Olmos, Lambayeque</span>
+          <span class="small text-dark fw-bold">Canales Oficiales de Atención B2B</span>
+        </div>
+        <h1 class="display-5 fw-extrabold mb-3 text-white">
+          Comunícate con Distribuidora Santa Rita S.A.C.
+        </h1>
+        <p class="lead mb-0 text-white opacity-90 fs-5">
+          ¿Tienes dudas sobre precios por volumen, reparto a tu caserío o registro de tu negocio? Estamos a tu disposición para ayudarte a surtir tu bodega sin complicaciones.
+        </p>
+      </div>
+      <div class="col-12 col-lg-4 text-center text-lg-end">
+        <a
+          href="https://wa.me/51974812345?text=Hola%2C%20quisiera%20atenci%C3%B3n%20para%20mi%20bodega%20en%20Olmos"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-warning btn-lg px-4 py-3 fw-bold text-dark shadow-sm d-inline-flex align-items-center gap-2"
+          aria-label="Abrir WhatsApp para chatear con atención al cliente"
+        >
+          <i class="bi bi-whatsapp fs-4" aria-hidden="true"></i>
+          <span>WhatsApp Inmediato</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTENIDO PRINCIPAL: CANALES + FORMULARIO -->
+<section class="py-5 bg-light" aria-labelledby="seccion-canales-contacto">
+  <div class="container py-2">
+    <div class="row g-4 g-xl-5">
+      
+      <!-- COLUMNA IZQUIERDA: TARJETAS DE INFORMACIÓN DE CONTACTO -->
+      <div class="col-12 col-lg-5">
+        <div class="mb-4">
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold mb-2">
+            Nuestros Canales
+          </span>
+          <h2 id="seccion-canales-contacto" class="h3 fw-bold text-dark mb-2">
+            Información de Contacto
+          </h2>
+          <p class="text-secondary small mb-0">
+            Encuéntranos en el centro de Olmos o comunícate a través de nuestras líneas telefónicas y digitales.
+          </p>
+        </div>
+
+        <div class="d-grid gap-3">
+          @for (info of datosContacto; track info.titulo) {
+            <div class="card bg-white text-dark border border-light-subtle shadow-sm rounded-4 p-3 info-card">
+              <div class="d-flex align-items-start gap-3">
+                <div class="contact-icon bg-success-subtle text-success border border-success-subtle rounded-3 d-flex align-items-center justify-content-center flex-shrink-0">
+                  <i class="bi {{ info.icono }} fs-4 text-success" aria-hidden="true"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-center justify-content-between mb-1">
+                    <h3 class="h6 fw-bold text-dark mb-0">{{ info.titulo }}</h3>
+                    @if (info.badge) {
+                      <span class="badge bg-success-subtle text-success border border-success-subtle small fw-bold">{{ info.badge }}</span>
+                    }
+                  </div>
+                  <p class="fw-bold text-dark mb-0 small">{{ info.lineaPrincipal }}</p>
+                  <p class="text-secondary small mb-2">{{ info.lineaSecundaria }}</p>
+                  
+                  @if (info.enlaceAccion) {
+                    <a
+                      [href]="info.enlaceAccion.url"
+                      [target]="info.enlaceAccion.esExterno ? '_blank' : '_self'"
+                      [rel]="info.enlaceAccion.esExterno ? 'noopener noreferrer' : ''"
+                      class="btn btn-sm btn-outline-success fw-bold d-inline-flex align-items-center gap-1"
+                    >
+                      <span>{{ info.enlaceAccion.texto }}</span>
+                      <i class="bi bi-arrow-up-right small" aria-hidden="true"></i>
+                    </a>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Banner de Emergencia / Pedido Urgente -->
+        <div class="card bg-success text-white border-0 shadow-sm rounded-4 p-4 mt-4 text-center text-sm-start">
+          <div class="d-flex flex-column flex-sm-row align-items-center gap-3">
+            <i class="bi bi-lightning-charge-fill display-5 text-warning flex-shrink-0" aria-hidden="true"></i>
+            <div>
+              <h3 class="h6 fw-bold text-white mb-1">¿Te quedaste sin stock en un producto clave?</h3>
+              <p class="small text-white opacity-90 mb-0">
+                Llama a nuestra línea telefónica al <strong>974 812 345</strong> para gestionar despachos prioritarios del mismo día en el casco urbano de Olmos.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMNA DERECHA: FORMULARIO REACTIVO DE CONTACTO -->
+      <div class="col-12 col-lg-7">
+        <div class="card bg-white text-dark border border-light-subtle shadow-sm rounded-4 p-4 p-md-5">
+          
+          @if (enviadoConExito()) {
+            <!-- Alerta visual de mensaje enviado con éxito -->
+            <div class="text-center py-4 success-state text-dark" role="status" aria-live="polite">
+              <div class="success-icon-wrapper bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-3 shadow">
+                <i class="bi bi-check-lg display-4 text-white" aria-hidden="true"></i>
+              </div>
+              <h3 class="h4 fw-bold text-dark mb-2">¡Mensaje recibido con éxito!</h3>
+              <p class="text-secondary mb-4 max-w-500 mx-auto">
+                Estimado(a) <strong>{{ ultimoEnvio()?.nombreContacto }}</strong> de <strong>{{ ultimoEnvio()?.nombreNegocio }}</strong>, nuestro equipo de ventas se comunicará contigo a la brevedad por teléfono o WhatsApp para atender tu consulta sobre: <em>"{{ ultimoEnvio()?.asunto }}"</em>.
+              </p>
+
+              <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                <button
+                  type="button"
+                  class="btn btn-outline-success fw-bold px-4 py-2"
+                  (click)="reiniciar()"
+                >
+                  <i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>
+                  Enviar otra consulta
+                </button>
+                <a
+                  routerLink="/catalogo"
+                  class="btn btn-success fw-bold px-4 py-2 text-white shadow-sm"
+                >
+                  <i class="bi bi-grid-3x3-gap-fill me-1" aria-hidden="true"></i>
+                  Ver Catálogo Mayorista
+                </a>
+              </div>
+            </div>
+          } @else {
+            <div class="mb-4">
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold mb-2">
+                Formulario de Consulta
+              </span>
+              <h2 class="h3 fw-bold text-dark mb-1">
+                Escríbenos directamente
+              </h2>
+              <p class="text-secondary small mb-0">
+                Completa tus datos comerciales y responderemos en el menor tiempo posible.
+              </p>
+            </div>
+
+            <!-- Formulario Reactivo de Angular -->
+            <form [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+              <div class="row g-3">
+                
+                <!-- Nombre del Negocio / Bodega -->
+                <div class="col-12 col-md-6">
+                  <label for="nombreNegocio" class="form-label fw-semibold text-dark small">
+                    Nombre de tu Negocio / Bodega <span class="text-danger" aria-hidden="true">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-success fw-bold" aria-hidden="true">
+                      <i class="bi bi-shop"></i>
+                    </span>
+                    <input
+                      type="text"
+                      id="nombreNegocio"
+                      formControlName="nombreNegocio"
+                      class="form-control"
+                      [class.is-invalid]="mostrarError('nombreNegocio')"
+                      placeholder="Ej. Bodega San Martín"
+                      autocomplete="organization"
+                      aria-required="true"
+                      [attr.aria-describedby]="mostrarError('nombreNegocio') ? 'error-nombreNegocio' : null"
+                    />
+                  </div>
+                  @if (mostrarError('nombreNegocio')) {
+                    <div id="error-nombreNegocio" class="invalid-feedback d-block small">
+                      <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>
+                      {{ obtenerMensajeError('nombreNegocio') }}
+                    </div>
+                  }
+                </div>
+
+                <!-- Nombre del Contacto / Titular -->
+                <div class="col-12 col-md-6">
+                  <label for="nombreContacto" class="form-label fw-semibold text-dark small">
+                    Nombre del Titular o Contacto <span class="text-danger" aria-hidden="true">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-success fw-bold" aria-hidden="true">
+                      <i class="bi bi-person"></i>
+                    </span>
+                    <input
+                      type="text"
+                      id="nombreContacto"
+                      formControlName="nombreContacto"
+                      class="form-control"
+                      [class.is-invalid]="mostrarError('nombreContacto')"
+                      placeholder="Ej. Juan Pérez Ramos"
+                      autocomplete="name"
+                      aria-required="true"
+                      [attr.aria-describedby]="mostrarError('nombreContacto') ? 'error-nombreContacto' : null"
+                    />
+                  </div>
+                  @if (mostrarError('nombreContacto')) {
+                    <div id="error-nombreContacto" class="invalid-feedback d-block small">
+                      <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>
+                      {{ obtenerMensajeError('nombreContacto') }}
+                    </div>
+                  }
+                </div>
+
+                <!-- Teléfono Celular -->
+                <div class="col-12 col-md-6">
+                  <label for="telefono" class="form-label fw-semibold text-dark small">
+                    Teléfono Celular / WhatsApp <span class="text-danger" aria-hidden="true">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-success fw-bold" aria-hidden="true">
+                      <i class="bi bi-phone"></i>
+                    </span>
+                    <input
+                      type="tel"
+                      id="telefono"
+                      formControlName="telefono"
+                      class="form-control"
+                      [class.is-invalid]="mostrarError('telefono')"
+                      placeholder="Ej. 987654321 (9 dígitos)"
+                      maxlength="9"
+                      autocomplete="tel"
+                      aria-required="true"
+                      [attr.aria-describedby]="mostrarError('telefono') ? 'error-telefono' : null"
+                    />
+                  </div>
+                  @if (mostrarError('telefono')) {
+                    <div id="error-telefono" class="invalid-feedback d-block small">
+                      <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>
+                      {{ obtenerMensajeError('telefono') }}
+                    </div>
+                  }
+                </div>
+
+                <!-- Correo Electrónico -->
+                <div class="col-12 col-md-6">
+                  <label for="correo" class="form-label fw-semibold text-dark small">
+                    Correo Electrónico <span class="text-danger" aria-hidden="true">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-success fw-bold" aria-hidden="true">
+                      <i class="bi bi-envelope"></i>
+                    </span>
+                    <input
+                      type="email"
+                      id="correo"
+                      formControlName="correo"
+                      class="form-control"
+                      [class.is-invalid]="mostrarError('correo')"
+                      placeholder="Ej. contacto@bodegasanmartin.pe"
+                      autocomplete="email"
+                      aria-required="true"
+                      [attr.aria-describedby]="mostrarError('correo') ? 'error-correo' : null"
+                    />
+                  </div>
+                  @if (mostrarError('correo')) {
+                    <div id="error-correo" class="invalid-feedback d-block small">
+                      <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>
+                      {{ obtenerMensajeError('correo') }}
+                    </div>
+                  }
+                </div>
+
+                <!-- Asunto -->
+                <div class="col-12">
+                  <label for="asunto" class="form-label fw-semibold text-dark small">
+                    Motivo o Asunto de Consulta <span class="text-danger" aria-hidden="true">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-success fw-bold" aria-hidden="true">
+                      <i class="bi bi-chat-left-text"></i>
+                    </span>
+                    <select
+                      id="asunto"
+                      formControlName="asunto"
+                      class="form-select"
+                      [class.is-invalid]="mostrarError('asunto')"
+                      aria-required="true"
+                      [attr.aria-describedby]="mostrarError('asunto') ? 'error-asunto' : null"
+                    >
+                      <option value="" disabled selected>-- Selecciona el motivo de tu consulta --</option>
+                      @for (asunto of asuntosDisponibles; track asunto) {
+                        <option [value]="asunto">{{ asunto }}</option>
+                      }
+                    </select>
+                  </div>
+                  @if (mostrarError('asunto')) {
+                    <div id="error-asunto" class="invalid-feedback d-block small">
+                      <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>
+                      {{ obtenerMensajeError('asunto') }}
+                    </div>
+                  }
+                </div>
+
+                <!-- Mensaje -->
+                <div class="col-12">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="mensaje" class="form-label fw-semibold text-dark small mb-0">
+                      Detalle de tu Mensaje o Pedido <span class="text-danger" aria-hidden="true">*</span>
+                    </label>
+                    <span class="text-secondary small">Mínimo 10 caracteres</span>
+                  </div>
+                  <textarea
+                    id="mensaje"
+                    formControlName="mensaje"
+                    rows="4"
+                    class="form-control"
+                    [class.is-invalid]="mostrarError('mensaje')"
+                    placeholder="Describe aquí tu consulta sobre pedidos, cobertura en caseríos o marcas que necesitas abastecer..."
+                    aria-required="true"
+                    [attr.aria-describedby]="mostrarError('mensaje') ? 'error-mensaje' : null"
+                  ></textarea>
+                  @if (mostrarError('mensaje')) {
+                    <div id="error-mensaje" class="invalid-feedback d-block small">
+                      <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>
+                      {{ obtenerMensajeError('mensaje') }}
+                    </div>
+                  }
+                </div>
+
+                <!-- Botón de Envío -->
+                <div class="col-12 mt-4">
+                  <button
+                    type="submit"
+                    class="btn btn-success btn-lg w-100 py-3 fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-sm"
+                    [disabled]="enviando()"
+                  >
+                    @if (enviando()) {
+                      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      <span>Enviando mensaje...</span>
+                    } @else {
+                      <i class="bi bi-send-fill" aria-hidden="true"></i>
+                      <span>Enviar Mensaje de Contacto</span>
+                    }
+                  </button>
+                  <p class="text-secondary text-center small mt-2 mb-0">
+                    <i class="bi bi-lock-fill text-success me-1" aria-hidden="true"></i>
+                    Tus datos son de uso exclusivo para coordinar pedidos y cotizaciones mayoristas.
+                  </p>
+                </div>
+
+              </div>
+            </form>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PREGUNTAS FRECUENTES (FAQ RÁPIDO) -->
+<section class="py-5 bg-white border-top border-light-subtle" aria-labelledby="seccion-faq">
+  <div class="container py-2">
+    <div class="text-center max-w-700 mx-auto mb-4">
+      <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold mb-2">
+        Respuestas Rápidas
+      </span>
+      <h2 id="seccion-faq" class="h3 fw-bold text-dark mb-2">
+        Preguntas frecuentes de bodegueros
+      </h2>
+      <p class="text-secondary small mb-0">
+        Resolvemos las principales dudas sobre compras, reparto y pagos al por mayor.
+      </p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+      <div class="col-12 col-md-4">
+        <div class="card h-100 bg-white text-dark border border-light-subtle shadow-sm rounded-4 p-4">
+          <div class="text-success mb-2">
+            <i class="bi bi-person-check-fill fs-3 text-success" aria-hidden="true"></i>
+          </div>
+          <h3 class="h6 fw-bold text-dark mb-2">¿Puedo comprar si solo tengo DNI?</h3>
+          <p class="text-secondary small mb-0">
+            Sí. En Distribuidora Santa Rita atendemos a comerciantes con RUC o con DNI. Al registrarte podrás elegir tu tipo de documento y emitimos boleta o factura electrónica según requieras.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="card h-100 bg-white text-dark border border-light-subtle shadow-sm rounded-4 p-4">
+          <div class="text-success mb-2">
+            <i class="bi bi-truck fs-3 text-success" aria-hidden="true"></i>
+          </div>
+          <h3 class="h6 fw-bold text-dark mb-2">¿Cuánto demora el reparto a caseríos?</h3>
+          <p class="text-secondary small mb-0">
+            Los despachos al casco urbano de Olmos se entregan dentro de las 24 horas. Para caseríos como Insculás, Corral de Arena y El Virrey tenemos rutas semanales fijas coordinadas.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="card h-100 bg-white text-dark border border-light-subtle shadow-sm rounded-4 p-4">
+          <div class="text-success mb-2">
+            <i class="bi bi-cash-coin fs-3 text-success" aria-hidden="true"></i>
+          </div>
+          <h3 class="h6 fw-bold text-dark mb-2">¿Cuáles son las formas de pago?</h3>
+          <p class="text-secondary small mb-0">
+            Aceptamos pago contra entrega en efectivo, transferencias bancarias directas (BCP, BBVA, Banco de la Nación) y billeteras digitales (Yape y Plin).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

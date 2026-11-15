@@ -1,1 +1,238 @@
-<p>about-us works!</p>
+<!-- HEADER INSTITUCIONAL -->
+<section class="about-hero text-white py-5 py-lg-6 position-relative">
+  <div class="container py-3">
+    <div class="row align-items-center g-4">
+      <div class="col-12 col-lg-8 text-center text-lg-start">
+        <!-- Badge superior con fondo contrastante y texto real -->
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-light border border-success-subtle shadow-sm mb-3">
+          <span class="badge bg-success text-white rounded-pill px-2 py-1 small">📍 Olmos, Lambayeque</span>
+          <span class="small text-dark fw-bold">Más de 30 años de experiencia comercial</span>
+        </div>
+        <h1 class="display-5 fw-extrabold mb-3 text-white">
+          Sobre Distribuidora Santa Rita S.A.C.
+        </h1>
+        <p class="lead mb-0 text-white opacity-90 fs-5">
+          Más de tres décadas de experiencia comercial respaldando a las bodegas, tiendas y minimarkets de Olmos y todo el norte de Lambayeque.
+        </p>
+      </div>
+      <div class="col-12 col-lg-4 text-center text-lg-end">
+        <div class="d-inline-block bg-white text-dark p-4 rounded-4 shadow-sm text-start stats-box border border-light-subtle">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="rounded-circle bg-success text-white p-3 d-flex align-items-center justify-content-center shadow-sm">
+              <i class="bi bi-clock-history fs-3" aria-hidden="true"></i>
+            </div>
+            <div>
+              <span class="d-block display-6 fw-bold text-success lh-1">+30</span>
+              <span class="small text-dark fw-bold">Años de experiencia</span>
+            </div>
+          </div>
+          <p class="small text-secondary mb-0">
+            Nacidos en la plaza de Olmos, evolucionando junto a los comerciantes que mueven la economía local.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECCIÓN HISTORIA -->
+<section class="py-5 bg-white" aria-labelledby="seccion-historia">
+  <div class="container py-2">
+    <div class="row g-5 align-items-center">
+      <div class="col-12 col-lg-6">
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold mb-2">
+          Nuestras Raíces
+        </span>
+        <h2 id="seccion-historia" class="h2 fw-bold text-dark mb-4">
+          De bodega familiar en la plaza a distribuidora mayorista de referencia
+        </h2>
+        <div class="text-secondary d-grid gap-3 lh-lg">
+          <p class="mb-0">
+            La historia de <strong>Distribuidora Santa Rita S.A.C.</strong> no empezó en un gran centro logístico, sino en el corazón mismo de <strong>Olmos, Lambayeque</strong>. A inicios de la década de 1990, nuestra familia abrió una modesta tienda en la plaza principal atendiendo a vecinos, agricultores y familias del campo con dedicación y honradez.
+          </p>
+          <p class="mb-0">
+            Con más de tres décadas aprendiendo de las necesidades cotidianas del comerciante olmano, en el año <strong>2019</strong> dimos un paso trascendental: formalizamos la constitución de <em>Distribuidora Santa Rita S.A.C.</em> como empresa mayorista. Nuestro objetivo era claro: evitar que los dueños de bodegas tuvieran que viajar a Chiclayo o Motupe a buscar precios competitivos, perdiendo valiosas horas de trabajo y asumiendo sobrecostos de flete.
+          </p>
+          <p class="mb-0">
+            Hoy en día combinamos nuestra calidez humana de siempre con una plataforma web 24/7 y una flota de despacho ágil, garantizando que cada bodega de Olmos y sus caseríos reciba su mercadería en la puerta de su local al precio justo.
+          </p>
+        </div>
+
+        <div class="mt-4 pt-2">
+          <a
+            routerLink="/catalogo"
+            class="btn btn-success btn-lg px-4 py-3 fw-bold me-2 mb-2 d-inline-flex align-items-center gap-2 shadow-sm"
+          >
+            <i class="bi bi-box-seam" aria-hidden="true"></i>
+            <span>Explorar Productos</span>
+          </a>
+          <a
+            routerLink="/contacto"
+            class="btn btn-outline-secondary btn-lg px-4 py-3 fw-semibold mb-2 d-inline-flex align-items-center gap-2"
+          >
+            <i class="bi bi-geo-alt" aria-hidden="true"></i>
+            <span>Visítanos en Olmos</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Timeline Hitos -->
+      <div class="col-12 col-lg-6">
+        <div class="card bg-white text-dark border border-light-subtle shadow-sm rounded-4 p-4 p-md-5">
+          <h3 class="h5 fw-bold text-dark mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-trophy-fill text-warning" aria-hidden="true"></i>
+            <span>Hitos en nuestra trayectoria</span>
+          </h3>
+
+          <div class="timeline position-relative">
+            @for (hito of hitos; track hito.ano) {
+              <div class="timeline-item pb-4 position-relative ps-4 border-start border-2 border-success-subtle">
+                <div class="timeline-point position-absolute top-0 start-0 translate-middle bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm">
+                  <i class="bi {{ hito.icono }} small text-white" aria-hidden="true"></i>
+                </div>
+                <div class="ms-2">
+                  <span class="badge bg-success text-white rounded-pill px-3 py-1 fw-bold mb-1 small">{{ hito.ano }}</span>
+                  <h4 class="h6 fw-bold text-dark mb-1">{{ hito.titulo }}</h4>
+                  <p class="text-secondary small mb-0 lh-base">{{ hito.descripcion }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECCIÓN MISIÓN Y VISIÓN -->
+<section class="py-5 bg-light" aria-labelledby="seccion-mision-vision">
+  <div class="container py-2">
+    <div class="text-center max-w-700 mx-auto mb-5">
+      <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold mb-2">
+        Propósito y Futuro
+      </span>
+      <h2 id="seccion-mision-vision" class="h2 fw-bold text-dark mb-2">
+        Nuestra Misión y Visión
+      </h2>
+      <p class="text-secondary mb-0">
+        El horizonte que guía cada despacho, cotización y relación comercial con nuestros clientes.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <!-- Misión -->
+      <div class="col-12 col-md-6">
+        <div class="card h-100 bg-white text-dark border-0 shadow-sm rounded-4 p-4 p-lg-5 mv-card border-top border-5 border-success">
+          <div class="icon-circle bg-success text-white mb-4 d-flex align-items-center justify-content-center shadow-sm">
+            <i class="bi bi-bullseye fs-2 text-white" aria-hidden="true"></i>
+          </div>
+          <h3 class="h3 fw-bold text-dark mb-3">Nuestra Misión</h3>
+          <p class="text-secondary lead fs-5 lh-base mb-0">
+            Abastecer a los negocios de la zona norte de Lambayeque con productos de consumo masivo a precios mayoristas, con entrega puntual y un trato cercano, honesto y transparente.
+          </p>
+        </div>
+      </div>
+
+      <!-- Visión -->
+      <div class="col-12 col-md-6">
+        <div class="card h-100 bg-white text-dark border-0 shadow-sm rounded-4 p-4 p-lg-5 mv-card border-top border-5 border-primary">
+          <div class="icon-circle bg-primary text-white mb-4 d-flex align-items-center justify-content-center shadow-sm">
+            <i class="bi bi-eye-fill fs-2 text-white" aria-hidden="true"></i>
+          </div>
+          <h3 class="h3 fw-bold text-dark mb-3">Nuestra Visión</h3>
+          <p class="text-secondary lead fs-5 lh-base mb-0">
+            Ser al 2030 la distribuidora de referencia para las bodegas de la provincia, reconocida por su eficiencia logística, transparencia de precios y compromiso genuino con el comerciante local.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NUESTROS VALORES / COMPROMISOS -->
+<section class="py-5 bg-white" aria-labelledby="seccion-valores">
+  <div class="container py-2">
+    <div class="text-center max-w-700 mx-auto mb-5">
+      <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold mb-2">
+        Nuestros Pilares
+      </span>
+      <h2 id="seccion-valores" class="h2 fw-bold text-dark mb-2">
+        Valores y Compromisos con el Comerciante
+      </h2>
+      <p class="text-secondary mb-0">
+        Principios éticos y comerciales que definen nuestro día a día con cada cliente.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      @for (v of valores; track v.titulo) {
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="card h-100 bg-white text-dark border border-light-subtle shadow-sm rounded-4 p-4 value-card text-center text-md-start">
+            <div class="icon-circle bg-success-subtle text-success border border-success-subtle mx-auto mx-md-0 mb-3 d-flex align-items-center justify-content-center">
+              <i class="bi {{ v.icono }} fs-3 text-success" aria-hidden="true"></i>
+            </div>
+            <h3 class="h5 fw-bold text-dark mb-2">{{ v.titulo }}</h3>
+            <p class="text-secondary small mb-0 lh-base">{{ v.descripcion }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- COBERTURA EN OLMOS Y CASERÍOS -->
+<section class="py-5 bg-light" aria-labelledby="seccion-cobertura">
+  <div class="container py-2">
+    <div class="card bg-white text-dark border border-light-subtle shadow-sm rounded-4 p-4 p-lg-5">
+      <div class="row align-items-center g-4">
+        <div class="col-12 col-lg-6">
+          <span class="badge bg-warning-subtle text-dark border border-warning px-3 py-2 rounded-pill fw-bold mb-2">
+            Alcance Territorial
+          </span>
+          <h2 id="seccion-cobertura" class="h3 fw-bold text-dark mb-3">
+            Llegamos donde otros distribuidores no llegan
+          </h2>
+          <p class="text-secondary mb-4">
+            Conocemos cada rincón del distrito de Olmos y sus caseríos. Planificamos rutas periódicas para que nunca te quedes sin stock en las fechas de mayor demanda.
+          </p>
+
+          <div class="d-flex flex-wrap gap-2 mb-4">
+            @for (c of caseriosAtendidos; track c.nombre) {
+              <div class="p-2 px-3 rounded-pill bg-light border border-success-subtle shadow-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-geo-alt-fill text-success" aria-hidden="true"></i>
+                <span class="fw-bold small text-dark">{{ c.nombre }}</span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle small">{{ c.zona }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="alert alert-success d-flex align-items-center gap-3 mb-0 border border-success-subtle" role="alert">
+            <i class="bi bi-info-circle-fill fs-4 flex-shrink-0 text-success" aria-hidden="true"></i>
+            <div class="small text-dark">
+              ¿Tu negocio está en un caserío no listado? 
+              <a routerLink="/contacto" class="alert-link fw-bold text-success">Consúltanos</a> para coordinar una ruta especial de despacho.
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <div class="card bg-success text-white border-0 rounded-4 p-4 p-md-5 text-center shadow">
+            <i class="bi bi-truck display-3 text-warning mb-3" aria-hidden="true"></i>
+            <h3 class="h4 fw-bold text-white mb-2">Despacho seguro hasta tu mostrador</h3>
+            <p class="text-white opacity-90 small mb-4">
+              Nuestros vehículos están acondicionados para resguardar la higiene y calidad de los abarrotes y productos de limpieza.
+            </p>
+            <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+              <a routerLink="/registro" class="btn btn-warning fw-bold px-4 py-2 text-dark shadow-sm">
+                Registrar Negocio
+              </a>
+              <a routerLink="/contacto" class="btn btn-light fw-bold text-success px-4 py-2 shadow-sm">
+                Hablar con un Asesor
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

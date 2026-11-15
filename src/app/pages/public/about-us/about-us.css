@@ -1,0 +1,65 @@
+/* Hero section */
+.about-hero {
+  background: linear-gradient(135deg, #0a4329 0%, #157347 50%, #198754 100%);
+  border-bottom: 4px solid #ffc107;
+}
+
+.fw-extrabold {
+  font-weight: 800;
+}
+
+.max-w-700 {
+  max-width: 700px;
+}
+
+/* Forzar contraste estricto en tarjetas claras */
+.card {
+  color: #212529 !important;
+}
+
+.card .text-secondary {
+  color: #495057 !important;
+}
+
+.card .text-muted {
+  color: #6c757d !important;
+}
+
+/* Icon circles */
+.icon-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+}
+
+/* Timeline */
+.timeline-item:last-child {
+  border-left-color: transparent !important;
+  padding-bottom: 0 !important;
+}
+
+.timeline-point {
+  width: 32px;
+  height: 32px;
+  left: 0;
+  top: 0;
+}
+
+/* Hover effects */
+.mv-card,
+.value-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mv-card:hover,
+.value-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.08) !important;
+}
+
+@media (max-width: 575.98px) {
+  .about-hero {
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+}

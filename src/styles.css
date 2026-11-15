@@ -1,1 +1,23 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles for Distribuidora Santa Rita S.A.C. */
+
+/* Asegurar contraste WCAG 2.1 AA en todas las tarjetas de fondo claro */
+.card:not([class*='bg-primary']):not([class*='bg-success']):not([class*='bg-dark']):not([class*='bg-danger']) {
+  color: #212529;
+  background-color: #ffffff;
+}
+
+/* Evitar que textos dentro de tarjetas hereden text-white de secciones contenedoras */
+.card:not([class*='bg-success']) .text-secondary {
+  color: #495057 !important;
+}
+
+/* Badges con contraste legible */
+.badge.bg-success-subtle {
+  background-color: #d1e7dd !important;
+  color: #0f5132 !important;
+}
+
+.badge.bg-warning-subtle {
+  background-color: #fff3cd !important;
+  color: #664d03 !important;
+}
