@@ -47,16 +47,33 @@
             }
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/login" routerLinkActive="active">
-            <i class="bi bi-person-circle"></i> Ingresar
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="btn btn-light btn-sm ms-lg-2 mt-2 mt-lg-0" routerLink="/registro"
-            >Registrarse</a
-          >
-        </li>
+        @if (auth.usuario(); as usuario) {
+          <li class="nav-item">
+            <span class="navbar-text text-white d-block">
+              <i class="bi bi-person-circle"></i> {{ usuario.nombreContacto }}
+            </span>
+          </li>
+          <li class="nav-item">
+            <button
+              type="button"
+              class="btn btn-light btn-sm ms-lg-2 mt-2 mt-lg-0"
+              (click)="salir()"
+            >
+              Cerrar sesión
+            </button>
+          </li>
+        } @else {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/login" routerLinkActive="active">
+              <i class="bi bi-person-circle"></i> Ingresar
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-light btn-sm ms-lg-2 mt-2 mt-lg-0" routerLink="/registro"
+              >Registrarse</a
+            >
+          </li>
+        }
       </ul>
     </div>
   </div>

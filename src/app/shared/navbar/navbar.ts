@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
 
 @Component({
@@ -10,4 +11,12 @@ import { CartService } from '../../core/services/cart.service';
 })
 export class Navbar {
   cart = inject(CartService);
+  auth = inject(AuthService);
+  private router = inject(Router);
+
+  // HU02: cerrar sesión y volver al inicio
+  salir(): void {
+    this.auth.logout();
+    this.router.navigateByUrl('/');
+  }
 }
