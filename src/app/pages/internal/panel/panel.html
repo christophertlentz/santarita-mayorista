@@ -1,0 +1,10 @@
+@if (auth.usuario(); as usuario) {
+  <h1 class="h3">Panel interno</h1>
+  <p class="lead mb-1">Hola, {{ usuario.nombreContacto }}.</p>
+  <p>
+    Rol: <span class="badge bg-success text-capitalize">{{ usuario.rol }}</span>
+  </p>
+  <div class="alert alert-info" role="status">
+    La gestión de productos, stock y pedidos estará disponible en el Sprint 2.
+  </div>
+}

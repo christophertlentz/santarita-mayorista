@@ -1,1 +1,172 @@
-<p>register works!</p>
+<div class="row justify-content-center">
+  <div class="col-md-10 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h3 mb-1">Registro de cliente mayorista</h1>
+        <p class="text-secondary">Crea tu cuenta para hacer pedidos en línea.</p>
+
+        @if (errorRegistro()) {
+          <div class="alert alert-warning" role="alert">
+            {{ errorRegistro() }}
+            <a routerLink="/login" class="alert-link">Inicia sesión</a>.
+          </div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="registrar()" novalidate>
+          <div class="row g-3">
+            <div class="col-sm-4">
+              <label for="tipoDocumento" class="form-label">Tipo de documento</label>
+              <select id="tipoDocumento" class="form-select" formControlName="tipoDocumento">
+                <option value="RUC">RUC</option>
+                <option value="DNI">DNI</option>
+              </select>
+            </div>
+
+            <div class="col-sm-8">
+              <label for="numeroDocumento" class="form-label">Número de documento</label>
+              <input
+                id="numeroDocumento"
+                type="text"
+                inputmode="numeric"
+                class="form-control"
+                formControlName="numeroDocumento"
+                [attr.maxlength]="esRuc ? 11 : 8"
+                [class.is-invalid]="documentoConError"
+              />
+              @if (documentoConError) {
+                <div class="invalid-feedback">
+                  {{
+                    esRuc ? 'Ingresa un RUC válido de 11 dígitos' : 'El DNI debe tener 8 dígitos'
+                  }}
+                </div>
+              }
+            </div>
+
+            <div class="col-md-6">
+              <label for="nombreNegocio" class="form-label">Nombre del negocio</label>
+              <input
+                id="nombreNegocio"
+                type="text"
+                class="form-control"
+                formControlName="nombreNegocio"
+                [class.is-invalid]="mostrarError('nombreNegocio')"
+              />
+              @if (mostrarError('nombreNegocio')) {
+                <div class="invalid-feedback">Ingresa el nombre de tu negocio</div>
+              }
+            </div>
+
+            <div class="col-md-6">
+              <label for="nombreContacto" class="form-label">Nombre de contacto</label>
+              <input
+                id="nombreContacto"
+                type="text"
+                class="form-control"
+                formControlName="nombreContacto"
+                autocomplete="name"
+                [class.is-invalid]="mostrarError('nombreContacto')"
+              />
+              @if (mostrarError('nombreContacto')) {
+                <div class="invalid-feedback">Ingresa tu nombre</div>
+              }
+            </div>
+
+            <div class="col-md-8">
+              <label for="direccion" class="form-label">Dirección</label>
+              <input
+                id="direccion"
+                type="text"
+                class="form-control"
+                formControlName="direccion"
+                autocomplete="street-address"
+                [class.is-invalid]="mostrarError('direccion')"
+              />
+              @if (mostrarError('direccion')) {
+                <div class="invalid-feedback">Ingresa la dirección de entrega</div>
+              }
+            </div>
+
+            <div class="col-md-4">
+              <label for="telefono" class="form-label">Celular</label>
+              <input
+                id="telefono"
+                type="tel"
+                class="form-control"
+                formControlName="telefono"
+                maxlength="9"
+                autocomplete="tel"
+                [class.is-invalid]="mostrarError('telefono')"
+              />
+              @if (mostrarError('telefono')) {
+                <div class="invalid-feedback">Ingresa un celular válido</div>
+              }
+            </div>
+
+            <div class="col-md-6">
+              <label for="correo" class="form-label">Correo</label>
+              <input
+                id="correo"
+                type="email"
+                class="form-control"
+                formControlName="correo"
+                autocomplete="email"
+                [class.is-invalid]="mostrarError('correo')"
+              />
+              @if (mostrarError('correo')) {
+                <div class="invalid-feedback">Ingresa un correo válido</div>
+              }
+            </div>
+
+            <div class="col-md-6">
+              <label for="password" class="form-label">Contraseña</label>
+              <input
+                id="password"
+                type="password"
+                class="form-control"
+                formControlName="password"
+                autocomplete="new-password"
+                [class.is-invalid]="mostrarError('password')"
+              />
+              @if (mostrarError('password')) {
+                <div class="invalid-feedback">Usa 8 caracteres o más, con letras y números</div>
+              }
+            </div>
+
+            <div class="col-12">
+              <div class="form-check">
+                <input
+                  id="aceptaPrivacidad"
+                  type="checkbox"
+                  class="form-check-input"
+                  formControlName="aceptaPrivacidad"
+                  [class.is-invalid]="mostrarError('aceptaPrivacidad')"
+                />
+                <label for="aceptaPrivacidad" class="form-check-label">
+                  Acepto el aviso de privacidad y el uso de mis datos para gestionar mis pedidos
+                </label>
+                @if (mostrarError('aceptaPrivacidad')) {
+                  <div class="invalid-feedback">Debes aceptar el aviso de privacidad</div>
+                }
+              </div>
+            </div>
+
+            <div class="col-12 d-grid d-sm-block">
+              <button type="submit" class="btn btn-success" [disabled]="form.invalid || enviando()">
+                @if (enviando()) {
+                  <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                  Registrando...
+                } @else {
+                  Registrarme
+                }
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <p class="mt-3 mb-0 small">
+          ¿Ya tienes una cuenta? <a routerLink="/login">Inicia sesión</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
