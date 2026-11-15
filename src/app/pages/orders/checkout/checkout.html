@@ -1,1 +1,27 @@
-<p>checkout works!</p>
+<div>
+  <h2>Finalizar Compra (Checkout)</h2>
+
+  @if (cartService.cantidadProductos() > 0) {
+    <div>
+      <h3>Resumen del Pedido</h3>
+      @for (item of cartService.items(); track $index) {
+        <div>
+          <span>{{ item.producto.nombre }} (x{{ item.cantidad }})</span>
+          <span>S/ {{ item.subtotal.toFixed(2) }}</span>
+        </div>
+      }
+
+      <div>
+        <strong>Total a pagar: S/ {{ cartService.total().toFixed(2) }}</strong>
+      </div>
+
+      <div>
+        <a routerLink="/orders/cart">Volver al carrito</a>
+        <button (click)="finalizarCompra()">Confirmar Pedido</button>
+      </div>
+    </div>
+  } @else {
+    <p>No hay productos en el carrito para procesar el pago.</p>
+    <a routerLink="/catalog">Ir al catálogo</a>
+  }
+</div>
