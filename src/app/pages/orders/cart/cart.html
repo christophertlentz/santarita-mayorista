@@ -1,1 +1,44 @@
-<p>cart works!</p>
+<div>
+  <h2>Carrito de Compras</h2>
+  @if (cartService.cantidadProductos() > 0) {
+    <div>
+      @for (item of cartService.items(); track $index) {
+        <div>
+          <div>
+            <p>{{ item.producto.nombre }}</p>
+            <p>S/ {{ item.precioUnitario }} x {{ item.cantidad }}</p>
+          </div>
+          <div>
+            <input 
+              type="number" 
+              min="1" 
+              [value]="item.cantidad" 
+              (change)="actualizar($index, +$any($event.target).value)">
+            <span>S/ {{ item.subtotal.toFixed(2) }}</span>
+            <button (click)="eliminar($index)">Eliminar</button>
+          </div>
+        </div>
+      }
+      <div>
+        Total: S/ {{ cartService.total().toFixed(2) }}
+      </div>
+
+      @if (cartService.faltaParaMinimo() > 0) {
+        <div>
+          Faltan S/ {{ cartService.faltaParaMinimo().toFixed(2) }} para el pedido mínimo de S/ {{ montoMinimo }}.
+        </div>
+      }
+    </div>
+    <div>
+      <a routerLink="/catalog">Seguir comprando</a>
+      @if (cartService.faltaParaMinimo() === 0) {
+        <a routerLink="/checkout">Ir al pago</a>
+      } @else {
+        <button disabled>Ir al pago</button>
+      }
+    </div>
+  } @else {
+    <p>Tu carrito está vacío.</p>
+    <a routerLink="/catalog">Ir a comprar</a>
+  }
+</div>
