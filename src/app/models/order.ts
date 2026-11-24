@@ -1,22 +1,31 @@
-import { Presentation, Product } from './product';
+export type OrderStatus = 'Pendiente' | 'Preparado' | 'En reparto' | 'Entregado';
 
-// Una línea del carrito o del pedido
 export interface CartItem {
-  producto: Product;
-  presentacion: Presentation;
-  cantidad: number;
+  productoId?: number;
+  nombre?: string;
+  precio?: number;
   precioUnitario: number;
+  cantidad: number;
   subtotal: number;
+  producto?: any;
+  presentacion?: any;
+}
+
+export interface OrderHistoryItem {
+  estado: OrderStatus;
+  fecha: string;
+  observacion?: string;
 }
 
 export interface Order {
   id: number;
-  numero: string;          // Ej.: 'PED-0001'
+  numero: string;
   clienteId: number;
   fecha: string;
   items: CartItem[];
   total: number;
-  tipoEntrega: 'Reparto' | 'Recojo en almacén';
-  formaPago: 'Contado' | 'Crédito';
-  estado: 'Pendiente' | 'Preparado' | 'En reparto' | 'Entregado';
+  tipoEntrega: string;
+  formaPago: string;
+  estado: OrderStatus;
+  historial?: OrderHistoryItem[];
 }

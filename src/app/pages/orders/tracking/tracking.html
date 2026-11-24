@@ -1,0 +1,47 @@
+<div class="container py-4">
+  <h2>Seguimiento de pedidos</h2>
+
+  @if (orders.length === 0) {
+    <div class="alert alert-info">
+      Aún no tienes pedidos registrados.
+      <a routerLink="/catalogo">Ir al catálogo</a>
+    </div>
+  } @else {
+    <div class="row">
+      <div class="col-md-5 mb-3">
+        <div class="list-group">
+          @for (order of orders; track order.id) {
+            <button
+              type="button"
+              class="list-group-item list-group-item-action"
+              (click)="selectOrder(order)"
+            >
+              <div><strong>{{ order.numero }}</strong></div>
+              <div class="small">{{ order.fecha }} · {{ order.estado }}</div>
+              <div>S/ {{ order.total }}</div>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="col-md-7">
+        @if (selectedOrder; as current) {
+          <div class="card p-3">
+            <h5>Pedido {{ current.numero }}</h5>
+            <p>Estado actual: <strong>{{ current.estado }}</strong></p>
+            <p>Entrega: {{ current.tipoEntrega }} | Pago: {{ current.formaPago }}</p>
+            <p>Total: S/ {{ current.total }}</p>
+
+            <div class="mt-2">
+              @for (step of steps; track step; let i = $index) {
+                <span class="badge bg-secondary me-1">
+                  {{ i + 1 }}. {{ step }}
+                </span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
