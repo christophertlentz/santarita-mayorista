@@ -1,10 +1,11 @@
 import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
-// Pantalla provisional del panel interno: destino del personal al iniciar sesión (HU02).
-// Sus funciones (productos, stock, pedidos) se desarrollan en el Sprint 2.
+// Pantalla del panel interno: destino del personal al iniciar sesión (HU02).
+// Desde aquí el administrador entra al mantenimiento de productos (HU08).
 @Component({
-  imports: [],
+  imports: [RouterLink],
   selector: 'app-panel',
   templateUrl: './panel.html',
 })

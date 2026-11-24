@@ -1,0 +1,246 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <a routerLink="/panel" class="text-decoration-none small">
+      <i class="bi bi-arrow-left"></i> Volver al panel
+    </a>
+    <h1 class="h3 mb-0">Mantenimiento de productos</h1>
+  </div>
+  @if (!mostrarFormulario()) {
+    <button type="button" class="btn btn-success" (click)="nuevo()">
+      <i class="bi bi-plus-lg"></i> Nuevo producto
+    </button>
+  }
+</div>
+
+@if (mensaje()) {
+  <div class="alert alert-success" role="status">
+    <i class="bi bi-check-circle"></i> {{ mensaje() }}
+  </div>
+}
+
+<!-- Formulario: registrar o editar -->
+@if (mostrarFormulario()) {
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white fw-semibold">
+      {{ editandoId() === null ? 'Nuevo producto' : 'Editar producto' }}
+    </div>
+    <div class="card-body">
+      <form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" for="nombre">Nombre</label>
+            <input
+              id="nombre"
+              class="form-control"
+              formControlName="nombre"
+              [class.is-invalid]="invalido('nombre')"
+            />
+            <div class="invalid-feedback">Ingresa el nombre (mínimo 3 letras).</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="marca">Marca</label>
+            <input
+              id="marca"
+              class="form-control"
+              formControlName="marca"
+              [class.is-invalid]="invalido('marca')"
+            />
+            <div class="invalid-feedback">Ingresa la marca.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="categoria">Categoría</label>
+            <input
+              id="categoria"
+              class="form-control"
+              list="listaCategorias"
+              formControlName="categoria"
+              [class.is-invalid]="invalido('categoria')"
+              placeholder="Elige o escribe una nueva"
+            />
+            <datalist id="listaCategorias">
+              @for (c of categorias(); track c) {
+                <option [value]="c"></option>
+              }
+            </datalist>
+            <div class="invalid-feedback">Ingresa la categoría.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="stock">Stock (unidades)</label>
+            <input
+              id="stock"
+              type="number"
+              min="0"
+              class="form-control"
+              formControlName="stock"
+              [class.is-invalid]="invalido('stock')"
+            />
+            <div class="invalid-feedback">El stock no puede ser negativo.</div>
+          </div>
+        </div>
+
+        <h2 class="h6 mt-4">Presentaciones y precios por escala</h2>
+        <div formArrayName="presentaciones">
+          @for (pres of presentaciones.controls; track pres; let i = $index) {
+            <div class="border rounded p-3 mb-2" [formGroupName]="i">
+              <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                  <label class="form-label small">Tipo</label>
+                  <input
+                    class="form-control form-control-sm"
+                    formControlName="tipo"
+                    placeholder="Ej.: Caja x 12"
+                    [class.is-invalid]="pres.get('tipo')?.invalid && pres.get('tipo')?.touched"
+                  />
+                </div>
+                <div class="col-6 col-md-2">
+                  <label class="form-label small">Unidades</label>
+                  <input
+                    type="number"
+                    min="1"
+                    class="form-control form-control-sm"
+                    formControlName="unidades"
+                    [class.is-invalid]="
+                      pres.get('unidades')?.invalid && pres.get('unidades')?.touched
+                    "
+                  />
+                </div>
+                <div class="col-6 col-md-2">
+                  <label class="form-label small">Precio S/</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    class="form-control form-control-sm"
+                    formControlName="precio"
+                    [class.is-invalid]="pres.get('precio')?.invalid && pres.get('precio')?.touched"
+                  />
+                </div>
+                <div class="col-6 col-md-2">
+                  <label class="form-label small">Desde (cant.)</label>
+                  <input
+                    type="number"
+                    min="2"
+                    class="form-control form-control-sm"
+                    formControlName="desdeCantidad"
+                    placeholder="Opcional"
+                  />
+                </div>
+                <div class="col-6 col-md-2">
+                  <label class="form-label small">Precio escala S/</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    class="form-control form-control-sm"
+                    formControlName="precioEscala"
+                    placeholder="Opcional"
+                  />
+                </div>
+                <div class="col-md-1 text-md-end">
+                  <button
+                    type="button"
+                    class="btn btn-outline-danger btn-sm"
+                    title="Quitar presentación"
+                    (click)="quitarPresentacion(i)"
+                    [disabled]="presentaciones.length === 1"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+              @if (pres.touched && pres.errors?.['escalaIncompleta']) {
+                <div class="text-danger small mt-1">
+                  Para el precio por volumen completa "Desde" y "Precio escala".
+                </div>
+              }
+              @if (pres.touched && pres.errors?.['escalaMayor']) {
+                <div class="text-danger small mt-1">
+                  El precio por escala debe ser menor que el precio normal.
+                </div>
+              }
+            </div>
+          }
+        </div>
+        <button
+          type="button"
+          class="btn btn-outline-success btn-sm"
+          (click)="agregarPresentacion()"
+        >
+          <i class="bi bi-plus"></i> Agregar presentación
+        </button>
+
+        @if (error()) {
+          <div class="alert alert-danger mt-3 mb-0" role="alert">{{ error() }}</div>
+        }
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-success" [disabled]="guardando()">
+            @if (guardando()) {
+              <span class="spinner-border spinner-border-sm"></span>
+            }
+            Guardar
+          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelar()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Lista de productos -->
+@if (cargando()) {
+  <div class="text-center py-5"><div class="spinner-border text-success"></div></div>
+} @else {
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Producto</th>
+          <th>Categoría</th>
+          <th class="text-end">Stock</th>
+          <th>Presentaciones</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of productos(); track p.id) {
+          <tr>
+            <td>{{ p.id }}</td>
+            <td>
+              <div class="fw-semibold">{{ p.nombre }}</div>
+              <div class="small text-muted">{{ p.marca }}</div>
+            </td>
+            <td>{{ p.categoria }}</td>
+            <td class="text-end">
+              @if (p.stock === 0) {
+                <span class="badge bg-danger">Agotado</span>
+              } @else {
+                {{ p.stock }}
+              }
+            </td>
+            <td class="small">
+              @for (pr of p.presentaciones; track pr.tipo) {
+                <div>
+                  {{ pr.tipo }}: S/ {{ pr.precio.toFixed(2) }}
+                  @if (pr.precioEscala) {
+                    <span class="text-success"
+                      >(desde {{ pr.desdeCantidad }}: S/ {{ pr.precioEscala.toFixed(2) }})</span
+                    >
+                  }
+                </div>
+              }
+            </td>
+            <td class="text-end">
+              <button type="button" class="btn btn-outline-primary btn-sm" (click)="editar(p)">
+                <i class="bi bi-pencil"></i> Editar
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
