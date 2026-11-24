@@ -4,7 +4,14 @@
   <p>
     Rol: <span class="badge bg-success text-capitalize">{{ usuario.rol }}</span>
   </p>
+
+  @if (usuario.rol === 'administrador') {
+    <a routerLink="/panel/productos" class="btn btn-success mb-3">
+      <i class="bi bi-box-seam"></i> Mantenimiento de productos
+    </a>
+  }
+
   <div class="alert alert-info" role="status">
-    La gestión de productos, stock y pedidos estará disponible en el Sprint 2.
+    La gestión de stock y pedidos estará disponible próximamente.
   </div>
 }

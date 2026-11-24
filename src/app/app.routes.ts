@@ -9,6 +9,7 @@ import { ProductDetail } from './pages/catalog/product-detail/product-detail';
 import { Cart } from './pages/orders/cart/cart';
 import { Checkout } from './pages/orders/checkout/checkout';
 import { Panel } from './pages/internal/panel/panel';
+import { Products } from './pages/internal/products/products';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -35,6 +36,14 @@ export const routes: Routes = [
     component: Panel,
     canActivate: [authGuard],
     data: { roles: ['administrador', 'despachador', 'gerente'] }
+  },
+
+  // Mantenimiento de productos (HU08): solo el administrador
+  {
+    path: 'panel/productos',
+    component: Products,
+    canActivate: [authGuard],
+    data: { roles: ['administrador'] }
   },
 
   // Cualquier otra dirección vuelve al inicio
