@@ -21,6 +21,9 @@ export class Login {
   // HU01, escenario 1: mensaje de confirmación al llegar desde el registro
   registroExitoso = this.route.snapshot.queryParamMap.get('registro') === 'ok';
 
+  // HU13, escenario 2: mensaje al llegar después de crear una contraseña nueva
+  claveActualizada = this.route.snapshot.queryParamMap.get('clave') === 'ok';
+
   form = this.fb.nonNullable.group({
     correo: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],

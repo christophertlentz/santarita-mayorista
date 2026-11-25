@@ -4,6 +4,8 @@ import { AboutUs } from './pages/public/about-us/about-us';
 import { Contact } from './pages/public/contact/contact';
 import { Register } from './pages/auth/register/register';
 import { Login } from './pages/auth/login/login';
+import { ForgotPassword } from './pages/auth/forgot-password/forgot-password';
+import { ResetPassword } from './pages/auth/reset-password/reset-password';
 import { Catalog } from './pages/catalog/catalog/catalog';
 import { ProductDetail } from './pages/catalog/product-detail/product-detail';
 import { Cart } from './pages/orders/cart/cart';
@@ -18,9 +20,11 @@ export const routes: Routes = [
   { path: 'nosotros', component: AboutUs },
   { path: 'contacto', component: Contact },
 
-  // Acceso (HU01, HU02)
+  // Acceso (HU01, HU02, HU13)
   { path: 'registro', component: Register },
   { path: 'login', component: Login },
+  { path: 'recuperar', component: ForgotPassword },
+  { path: 'restablecer', component: ResetPassword },
 
   // Catálogo (HU03, HU04): solo clientes con sesión iniciada
   { path: 'catalogo', component: Catalog, canActivate: [authGuard], data: { roles: ['cliente'] } },

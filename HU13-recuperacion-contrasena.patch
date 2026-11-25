@@ -1,0 +1,724 @@
+diff --git a/src/app/app.routes.ts b/src/app/app.routes.ts
+index d9886f5..667bfbb 100644
+--- a/src/app/app.routes.ts
++++ b/src/app/app.routes.ts
+@@ -4,6 +4,8 @@ import { AboutUs } from './pages/public/about-us/about-us';
+ import { Contact } from './pages/public/contact/contact';
+ import { Register } from './pages/auth/register/register';
+ import { Login } from './pages/auth/login/login';
++import { ForgotPassword } from './pages/auth/forgot-password/forgot-password';
++import { ResetPassword } from './pages/auth/reset-password/reset-password';
+ import { Catalog } from './pages/catalog/catalog/catalog';
+ import { ProductDetail } from './pages/catalog/product-detail/product-detail';
+ import { Cart } from './pages/orders/cart/cart';
+@@ -17,9 +19,11 @@ export const routes: Routes = [
+   { path: 'nosotros', component: AboutUs },
+   { path: 'contacto', component: Contact },
+ 
+-  // Acceso (HU01, HU02)
++  // Acceso (HU01, HU02, HU13)
+   { path: 'registro', component: Register },
+   { path: 'login', component: Login },
++  { path: 'recuperar', component: ForgotPassword },
++  { path: 'restablecer', component: ResetPassword },
+ 
+   // Catálogo (HU03, HU04): solo clientes con sesión iniciada
+   { path: 'catalogo', component: Catalog, canActivate: [authGuard], data: { roles: ['cliente'] } },
+diff --git a/src/app/core/data/password-reset.mock.ts b/src/app/core/data/password-reset.mock.ts
+new file mode 100644
+index 0000000..7420977
+--- /dev/null
++++ b/src/app/core/data/password-reset.mock.ts
+@@ -0,0 +1,34 @@
++// HU13: enlaces de recuperación de contraseña simulados.
++// En el TB2 la API genera el token, guarda solo su hash y envía el enlace por correo.
++
++export const MINUTOS_VIGENCIA_ENLACE = 30;
++
++export interface ResetToken {
++  token: string;
++  correo: string;
++  expira: number; // fecha de vencimiento en milisegundos (Date.now())
++  usado: boolean;
++}
++
++// Enlaces de prueba para mostrar los tres escenarios de HU13 sin esperar 30 minutos:
++//   /restablecer?token=demo-valido   → permite cambiar la contraseña de cliente@santarita.pe
++//   /restablecer?token=demo-vencido  → venció hace una hora
++//   /restablecer?token=demo-usado    → ya se usó
++export function tokensDemo(ahora = Date.now()): ResetToken[] {
++  const vigencia = MINUTOS_VIGENCIA_ENLACE * 60_000;
++  return [
++    {
++      token: 'demo-valido',
++      correo: 'cliente@santarita.pe',
++      expira: ahora + vigencia,
++      usado: false,
++    },
++    {
++      token: 'demo-vencido',
++      correo: 'cliente@santarita.pe',
++      expira: ahora - 3_600_000,
++      usado: false,
++    },
++    { token: 'demo-usado', correo: 'cliente@santarita.pe', expira: ahora + vigencia, usado: true },
++  ];
++}
+diff --git a/src/app/core/services/auth.service.ts b/src/app/core/services/auth.service.ts
+index 83c4066..7267327 100644
+--- a/src/app/core/services/auth.service.ts
++++ b/src/app/core/services/auth.service.ts
+@@ -3,9 +3,15 @@ import { Observable, delay, of, tap } from 'rxjs';
+ import { Customer } from '../../models/customer';
+ import { ResponseBase } from '../../models/response-base';
+ import { ACCOUNTS_MOCK, Account } from '../data/customers.mock';
++import { MINUTOS_VIGENCIA_ENLACE, ResetToken, tokensDemo } from '../data/password-reset.mock';
+ 
+ const SESSION_KEY = 'santarita-sesion';
+ const ACCOUNTS_KEY = 'santarita-cuentas';
++const RESET_TOKENS_KEY = 'santarita-recuperacion';
++const NEW_PASSWORDS_KEY = 'santarita-claves';
++
++// HU13, escenario 3: el mismo mensaje si el enlace no existe, venció o ya se usó
++export const ENLACE_INVALIDO = 'Este enlace venció o ya fue usado. Solicita uno nuevo.';
+ 
+ export type Rol = Customer['rol'];
+ 
+@@ -24,7 +30,14 @@ export interface RegisterData {
+ @Injectable({ providedIn: 'root' })
+ export class AuthService {
+   // Cuentas de prueba + las que se registran desde el formulario
+-  private cuentas: Account[] = [...ACCOUNTS_MOCK, ...this.cargarCuentas()];
++  // (con las contraseñas cambiadas desde "Olvidé mi contraseña", HU13)
++  private cuentas: Account[] = this.aplicarClavesNuevas([
++    ...ACCOUNTS_MOCK,
++    ...this.cargarCuentas(),
++  ]);
++
++  // HU13: enlaces de recuperación (los de prueba + los solicitados desde el formulario)
++  private tokens: ResetToken[] = [...tokensDemo(), ...this.cargarTokens()];
+ 
+   // Usuario con sesión iniciada (se recupera al recargar la página)
+   readonly usuario = signal<Customer | null>(this.cargarSesion());
+@@ -91,6 +104,61 @@ export class AuthService {
+     this.guardarSesion(null);
+   }
+ 
++  // HU13, escenario 1: pedir el enlace para restablecer la contraseña.
++  // La respuesta es la misma exista o no la cuenta, para no revelar qué correos están registrados.
++  solicitarRecuperacion(correo: string): Observable<ResponseBase<null>> {
++    const buscado = correo.trim().toLowerCase();
++    const existe = this.cuentas.some((c) => c.cliente.correo.toLowerCase() === buscado);
++
++    if (existe) {
++      const token = this.nuevoToken();
++      this.tokens = [
++        ...this.tokens,
++        {
++          token,
++          correo: buscado,
++          expira: Date.now() + MINUTOS_VIGENCIA_ENLACE * 60_000,
++          usado: false,
++        },
++      ];
++      this.guardarTokens();
++
++      // Correo simulado: en el TB2 la API enviará este enlace al correo del cliente
++      console.info(
++        `[Correo simulado] Para: ${buscado} | Enlace: ${location.origin}/restablecer?token=${token}`,
++      );
++    }
++
++    return of(this.sinDatos()).pipe(delay(300));
++  }
++
++  // HU13, escenario 3: al abrir el enlace se revisa si todavía sirve
++  validarEnlace(token: string): Observable<ResponseBase<null>> {
++    const respuesta = this.tokenVigente(token) ? this.sinDatos() : this.enlaceInvalido();
++    return of(respuesta).pipe(delay(300));
++  }
++
++  // HU13, escenario 2: guardar la contraseña nueva; el enlace queda usado
++  restablecerPassword(token: string, password: string): Observable<ResponseBase<null>> {
++    const vigente = this.tokenVigente(token);
++    if (!vigente) return of(this.enlaceInvalido()).pipe(delay(300));
++
++    return of(this.sinDatos()).pipe(
++      delay(300),
++      tap(() => {
++        const correo = vigente.correo;
++        this.cuentas = this.cuentas.map((c) =>
++          c.cliente.correo.toLowerCase() === correo ? { ...c, password } : c,
++        );
++        // Se invalidan todos los enlaces pendientes de esa cuenta, no solo el usado
++        this.tokens = this.tokens.map((t) => (t.correo === correo ? { ...t, usado: true } : t));
++        this.guardarClaveNueva(correo, password);
++        this.guardarCuentas();
++        this.guardarTokens();
++      }),
++    );
++  }
++
+   // HU02, escenario 1: a dónde va cada rol después de iniciar sesión
+   rutaInicio(rol: Rol): string {
+     return rol === 'cliente' ? '/catalogo' : '/panel';
+@@ -104,6 +172,71 @@ export class AuthService {
+     return { isSuccess: false, errorCode, errorMessage, data: null };
+   }
+ 
++  private sinDatos(): ResponseBase<null> {
++    return { isSuccess: true, errorCode: '0000', errorMessage: '', data: null };
++  }
++
++  private enlaceInvalido(): ResponseBase<null> {
++    return { isSuccess: false, errorCode: '0410', errorMessage: ENLACE_INVALIDO, data: null };
++  }
++
++  // Un enlace sirve si existe, no se usó y no venció
++  private tokenVigente(token: string): ResetToken | undefined {
++    return this.tokens.find((t) => t.token === token && !t.usado && t.expira > Date.now());
++  }
++
++  private nuevoToken(): string {
++    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
++    return Math.random().toString(36).slice(2) + Date.now().toString(36);
++  }
++
++  // Simulación: solo se guardan los enlaces pedidos desde el formulario (los de prueba están en el código)
++  private guardarTokens(): void {
++    const demo = new Set(tokensDemo().map((t) => t.token));
++    const solicitados = this.tokens.filter((t) => !demo.has(t.token));
++    try {
++      localStorage.setItem(RESET_TOKENS_KEY, JSON.stringify(solicitados));
++    } catch {
++      /* sin almacenamiento */
++    }
++  }
++
++  private cargarTokens(): ResetToken[] {
++    try {
++      return JSON.parse(localStorage.getItem(RESET_TOKENS_KEY) ?? '[]');
++    } catch {
++      return [];
++    }
++  }
++
++  // Simulación: las contraseñas cambiadas se guardan aparte para que también apliquen
++  // a las cuentas de prueba. Con la API real la contraseña se guarda con hash en el servidor.
++  private guardarClaveNueva(correo: string, password: string): void {
++    const claves = this.cargarClavesNuevas();
++    claves[correo] = password;
++    try {
++      localStorage.setItem(NEW_PASSWORDS_KEY, JSON.stringify(claves));
++    } catch {
++      /* sin almacenamiento */
++    }
++  }
++
++  private cargarClavesNuevas(): Record<string, string> {
++    try {
++      return JSON.parse(localStorage.getItem(NEW_PASSWORDS_KEY) ?? '{}');
++    } catch {
++      return {};
++    }
++  }
++
++  private aplicarClavesNuevas(cuentas: Account[]): Account[] {
++    const claves = this.cargarClavesNuevas();
++    return cuentas.map((c) => {
++      const nueva = claves[c.cliente.correo.toLowerCase()];
++      return nueva ? { ...c, password: nueva } : c;
++    });
++  }
++
+   // La sesión guarda solo los datos del cliente, nunca la contraseña
+   private guardarSesion(usuario: Customer | null): void {
+     this.usuario.set(usuario);
+diff --git a/src/app/core/services/password-reset.spec.ts b/src/app/core/services/password-reset.spec.ts
+new file mode 100644
+index 0000000..c79c54c
+--- /dev/null
++++ b/src/app/core/services/password-reset.spec.ts
+@@ -0,0 +1,87 @@
++import { TestBed } from '@angular/core/testing';
++import { firstValueFrom } from 'rxjs';
++import { AuthService, ENLACE_INVALIDO } from './auth.service';
++
++// Lee el enlace que el "correo simulado" deja en la consola
++function capturarToken(info: ReturnType<typeof vi.spyOn>): string {
++  const mensaje = String(info.mock.calls.at(-1)?.[0] ?? '');
++  return new URL(mensaje.split('Enlace: ')[1]).searchParams.get('token') ?? '';
++}
++
++describe('AuthService – recuperación de contraseña (HU13)', () => {
++  let auth: AuthService;
++  let info: ReturnType<typeof vi.spyOn>;
++
++  beforeEach(() => {
++    localStorage.clear();
++    info = vi.spyOn(console, 'info').mockImplementation(() => {});
++    TestBed.configureTestingModule({});
++    auth = TestBed.inject(AuthService);
++  });
++
++  afterEach(() => info.mockRestore());
++
++  it('responde igual exista o no la cuenta, y solo envía enlace si existe', async () => {
++    const existe = await firstValueFrom(auth.solicitarRecuperacion('Cliente@santarita.pe'));
++    expect(info).toHaveBeenCalledTimes(1);
++
++    const noExiste = await firstValueFrom(auth.solicitarRecuperacion('nadie@santarita.pe'));
++    expect(info).toHaveBeenCalledTimes(1);
++
++    expect(noExiste).toEqual(existe);
++    expect(existe.isSuccess).toBe(true);
++  });
++
++  it('cambia la contraseña con un enlace vigente; la anterior deja de funcionar', async () => {
++    await firstValueFrom(auth.solicitarRecuperacion('cliente@santarita.pe'));
++    const token = capturarToken(info);
++
++    expect((await firstValueFrom(auth.validarEnlace(token))).isSuccess).toBe(true);
++    expect((await firstValueFrom(auth.restablecerPassword(token, 'NuevaClave1'))).isSuccess).toBe(
++      true,
++    );
++
++    const conNueva = await firstValueFrom(auth.login('cliente@santarita.pe', 'NuevaClave1'));
++    const conAnterior = await firstValueFrom(auth.login('cliente@santarita.pe', 'Cliente123'));
++    expect(conNueva.isSuccess).toBe(true);
++    expect(conAnterior.isSuccess).toBe(false);
++  });
++
++  it('un enlace no se puede usar dos veces', async () => {
++    await firstValueFrom(auth.restablecerPassword('demo-valido', 'NuevaClave1'));
++    const segundaVez = await firstValueFrom(auth.restablecerPassword('demo-valido', 'OtraClave2'));
++
++    expect(segundaVez.isSuccess).toBe(false);
++    expect(segundaVez.errorMessage).toBe(ENLACE_INVALIDO);
++  });
++
++  it('rechaza enlaces vencidos, usados o inexistentes con el mismo mensaje', async () => {
++    for (const token of ['demo-vencido', 'demo-usado', 'no-existe']) {
++      const r = await firstValueFrom(auth.validarEnlace(token));
++      expect(r.isSuccess).toBe(false);
++      expect(r.errorMessage).toBe(ENLACE_INVALIDO);
++    }
++  });
++
++  it('al cambiar la contraseña invalida los demás enlaces pendientes de esa cuenta', async () => {
++    await firstValueFrom(auth.solicitarRecuperacion('cliente@santarita.pe'));
++    const primero = capturarToken(info);
++    await firstValueFrom(auth.solicitarRecuperacion('cliente@santarita.pe'));
++    const segundo = capturarToken(info);
++
++    await firstValueFrom(auth.restablecerPassword(segundo, 'NuevaClave1'));
++
++    expect((await firstValueFrom(auth.validarEnlace(primero))).isSuccess).toBe(false);
++  });
++
++  it('la contraseña nueva se mantiene al recargar la página', async () => {
++    await firstValueFrom(auth.restablecerPassword('demo-valido', 'NuevaClave1'));
++
++    TestBed.resetTestingModule();
++    TestBed.configureTestingModule({});
++    const recargado = TestBed.inject(AuthService);
++
++    const r = await firstValueFrom(recargado.login('cliente@santarita.pe', 'NuevaClave1'));
++    expect(r.isSuccess).toBe(true);
++  });
++});
+diff --git a/src/app/pages/auth/forgot-password/forgot-password.css b/src/app/pages/auth/forgot-password/forgot-password.css
+new file mode 100644
+index 0000000..e69de29
+diff --git a/src/app/pages/auth/forgot-password/forgot-password.html b/src/app/pages/auth/forgot-password/forgot-password.html
+new file mode 100644
+index 0000000..1bceae2
+--- /dev/null
++++ b/src/app/pages/auth/forgot-password/forgot-password.html
+@@ -0,0 +1,60 @@
++<div class="row justify-content-center">
++  <div class="col-sm-10 col-md-7 col-lg-5">
++    <div class="card shadow-sm">
++      <div class="card-body p-4">
++        <h1 class="h3 mb-3">Recuperar contraseña</h1>
++
++        @if (enviado()) {
++          <div class="alert alert-success" role="status">
++            Si el correo está registrado, te enviamos un enlace para crear una contraseña nueva. El
++            enlace vence en {{ minutosVigencia }} minutos.
++          </div>
++          <p class="small text-secondary">
++            ¿No te llegó? Revisa la carpeta de correo no deseado o solicita otro enlace.
++          </p>
++          <div class="d-grid gap-2">
++            <a routerLink="/login" class="btn btn-success">Volver a iniciar sesión</a>
++            <button type="button" class="btn btn-outline-secondary" (click)="enviado.set(false)">
++              Solicitar otro enlace
++            </button>
++          </div>
++        } @else {
++          <p class="text-secondary">
++            Ingresa el correo de tu cuenta y te enviaremos un enlace para crear una contraseña
++            nueva.
++          </p>
++
++          <form [formGroup]="form" (ngSubmit)="solicitar()" novalidate>
++            <div class="mb-3">
++              <label for="correo" class="form-label">Correo</label>
++              <input
++                id="correo"
++                type="email"
++                class="form-control"
++                formControlName="correo"
++                autocomplete="email"
++                [class.is-invalid]="correoConError"
++              />
++              @if (correoConError) {
++                <div class="invalid-feedback">Ingresa un correo válido</div>
++              }
++            </div>
++
++            <div class="d-grid">
++              <button type="submit" class="btn btn-success" [disabled]="enviando()">
++                @if (enviando()) {
++                  <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
++                  Enviando...
++                } @else {
++                  Enviar enlace
++                }
++              </button>
++            </div>
++          </form>
++
++          <p class="mt-3 mb-0 small">¿La recordaste? <a routerLink="/login">Inicia sesión</a></p>
++        }
++      </div>
++    </div>
++  </div>
++</div>
+diff --git a/src/app/pages/auth/forgot-password/forgot-password.ts b/src/app/pages/auth/forgot-password/forgot-password.ts
+new file mode 100644
+index 0000000..eaaaa7d
+--- /dev/null
++++ b/src/app/pages/auth/forgot-password/forgot-password.ts
+@@ -0,0 +1,46 @@
++import { Component, inject, signal } from '@angular/core';
++import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
++import { RouterLink } from '@angular/router';
++import { AuthService } from '../../../core/services/auth.service';
++import { MINUTOS_VIGENCIA_ENLACE } from '../../../core/data/password-reset.mock';
++
++// HU13: "Olvidé mi contraseña"
++@Component({
++  imports: [ReactiveFormsModule, RouterLink],
++  selector: 'app-forgot-password',
++  styleUrl: './forgot-password.css',
++  templateUrl: './forgot-password.html',
++})
++export class ForgotPassword {
++  private fb = inject(FormBuilder);
++  private auth = inject(AuthService);
++
++  readonly minutosVigencia = MINUTOS_VIGENCIA_ENLACE;
++
++  enviando = signal(false);
++  enviado = signal(false);
++
++  form = this.fb.nonNullable.group({
++    correo: ['', [Validators.required, Validators.email]],
++  });
++
++  get correoConError(): boolean {
++    const control = this.form.controls.correo;
++    return control.invalid && control.touched;
++  }
++
++  solicitar(): void {
++    if (this.form.invalid || this.enviando()) {
++      this.form.markAllAsTouched();
++      return;
++    }
++
++    this.enviando.set(true);
++
++    this.auth.solicitarRecuperacion(this.form.getRawValue().correo).subscribe(() => {
++      // HU13, escenario 1: el mismo mensaje exista o no la cuenta
++      this.enviando.set(false);
++      this.enviado.set(true);
++    });
++  }
++}
+diff --git a/src/app/pages/auth/login/login.html b/src/app/pages/auth/login/login.html
+index d134769..b7adf48 100644
+--- a/src/app/pages/auth/login/login.html
++++ b/src/app/pages/auth/login/login.html
+@@ -10,6 +10,12 @@
+           </div>
+         }
+ 
++        @if (claveActualizada) {
++          <div class="alert alert-success" role="alert">
++            Tu contraseña fue actualizada. Ingresa con tu contraseña nueva.
++          </div>
++        }
++
+         @if (errorLogin()) {
+           <div class="alert alert-danger" role="alert">{{ errorLogin() }}</div>
+         }
+@@ -31,7 +37,10 @@
+           </div>
+ 
+           <div class="mb-3">
+-            <label for="password" class="form-label">Contraseña</label>
++            <div class="d-flex justify-content-between align-items-baseline">
++              <label for="password" class="form-label">Contraseña</label>
++              <a routerLink="/recuperar" class="small">¿Olvidaste tu contraseña?</a>
++            </div>
+             <input
+               id="password"
+               type="password"
+diff --git a/src/app/pages/auth/login/login.ts b/src/app/pages/auth/login/login.ts
+index 85612ef..11adc0e 100644
+--- a/src/app/pages/auth/login/login.ts
++++ b/src/app/pages/auth/login/login.ts
+@@ -21,6 +21,9 @@ export class Login {
+   // HU01, escenario 1: mensaje de confirmación al llegar desde el registro
+   registroExitoso = this.route.snapshot.queryParamMap.get('registro') === 'ok';
+ 
++  // HU13, escenario 2: mensaje al llegar después de crear una contraseña nueva
++  claveActualizada = this.route.snapshot.queryParamMap.get('clave') === 'ok';
++
+   form = this.fb.nonNullable.group({
+     correo: ['', [Validators.required, Validators.email]],
+     password: ['', Validators.required],
+diff --git a/src/app/pages/auth/reset-password/passwords-iguales.validator.spec.ts b/src/app/pages/auth/reset-password/passwords-iguales.validator.spec.ts
+new file mode 100644
+index 0000000..584924f
+--- /dev/null
++++ b/src/app/pages/auth/reset-password/passwords-iguales.validator.spec.ts
+@@ -0,0 +1,24 @@
++import { FormControl, FormGroup } from '@angular/forms';
++import { passwordsIgualesValidator } from './passwords-iguales.validator';
++
++function validar(password: string, confirmacion: string) {
++  const grupo = new FormGroup({
++    password: new FormControl(password),
++    confirmacion: new FormControl(confirmacion),
++  });
++  return passwordsIgualesValidator(grupo);
++}
++
++describe('passwordsIgualesValidator', () => {
++  it('acepta cuando las dos contraseñas son iguales', () => {
++    expect(validar('NuevaClave1', 'NuevaClave1')).toBeNull();
++  });
++
++  it('marca error cuando no coinciden', () => {
++    expect(validar('NuevaClave1', 'NuevaClave2')).toEqual({ passwordsDistintas: true });
++  });
++
++  it('no marca error mientras la confirmación esté vacía', () => {
++    expect(validar('NuevaClave1', '')).toBeNull();
++  });
++});
+diff --git a/src/app/pages/auth/reset-password/passwords-iguales.validator.ts b/src/app/pages/auth/reset-password/passwords-iguales.validator.ts
+new file mode 100644
+index 0000000..71ce353
+--- /dev/null
++++ b/src/app/pages/auth/reset-password/passwords-iguales.validator.ts
+@@ -0,0 +1,13 @@
++import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
++
++// Validador de grupo: la confirmación debe ser igual a la contraseña nueva (HU13, escenario 2)
++export const passwordsIgualesValidator: ValidatorFn = (
++  grupo: AbstractControl,
++): ValidationErrors | null => {
++  const password = grupo.get('password')?.value ?? '';
++  const confirmacion = grupo.get('confirmacion')?.value ?? '';
++
++  if (!confirmacion) return null; // de eso se encarga Validators.required
++
++  return password === confirmacion ? null : { passwordsDistintas: true };
++};
+diff --git a/src/app/pages/auth/reset-password/reset-password.css b/src/app/pages/auth/reset-password/reset-password.css
+new file mode 100644
+index 0000000..e69de29
+diff --git a/src/app/pages/auth/reset-password/reset-password.html b/src/app/pages/auth/reset-password/reset-password.html
+new file mode 100644
+index 0000000..2f4bb3f
+--- /dev/null
++++ b/src/app/pages/auth/reset-password/reset-password.html
+@@ -0,0 +1,85 @@
++<div class="row justify-content-center">
++  <div class="col-sm-10 col-md-7 col-lg-5">
++    <div class="card shadow-sm">
++      <div class="card-body p-4">
++        <h1 class="h3 mb-3">Crear contraseña nueva</h1>
++
++        @switch (estado()) {
++          @case ('verificando') {
++            <div class="d-flex align-items-center gap-2 text-secondary" role="status">
++              <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
++              Verificando el enlace...
++            </div>
++          }
++
++          @case ('invalido') {
++            <div class="alert alert-warning" role="alert">{{ mensajeEnlaceInvalido }}</div>
++            <div class="d-grid">
++              <a routerLink="/recuperar" class="btn btn-success">Solicitar un enlace nuevo</a>
++            </div>
++          }
++
++          @case ('valido') {
++            @if (errorEnvio()) {
++              <div class="alert alert-danger" role="alert">{{ errorEnvio() }}</div>
++            }
++
++            <form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
++              <div class="mb-3">
++                <label for="password" class="form-label">Contraseña nueva</label>
++                <input
++                  id="password"
++                  type="password"
++                  class="form-control"
++                  formControlName="password"
++                  autocomplete="new-password"
++                  aria-describedby="ayudaPassword"
++                  [class.is-invalid]="passwordConError"
++                />
++                @if (passwordConError) {
++                  <div class="invalid-feedback">Usa 8 caracteres o más, con letras y números</div>
++                } @else {
++                  <div id="ayudaPassword" class="form-text">
++                    Mínimo 8 caracteres, con letras y números.
++                  </div>
++                }
++              </div>
++
++              <div class="mb-3">
++                <label for="confirmacion" class="form-label">Repite la contraseña nueva</label>
++                <input
++                  id="confirmacion"
++                  type="password"
++                  class="form-control"
++                  formControlName="confirmacion"
++                  autocomplete="new-password"
++                  [class.is-invalid]="confirmacionConError"
++                />
++                @if (confirmacionConError) {
++                  <div class="invalid-feedback">
++                    {{
++                      form.controls.confirmacion.hasError('required')
++                        ? 'Repite la contraseña nueva'
++                        : 'Las contraseñas no coinciden'
++                    }}
++                  </div>
++                }
++              </div>
++
++              <div class="d-grid">
++                <button type="submit" class="btn btn-success" [disabled]="enviando()">
++                  @if (enviando()) {
++                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
++                    Guardando...
++                  } @else {
++                    Guardar contraseña
++                  }
++                </button>
++              </div>
++            </form>
++          }
++        }
++      </div>
++    </div>
++  </div>
++</div>
+diff --git a/src/app/pages/auth/reset-password/reset-password.ts b/src/app/pages/auth/reset-password/reset-password.ts
+new file mode 100644
+index 0000000..2085784
+--- /dev/null
++++ b/src/app/pages/auth/reset-password/reset-password.ts
+@@ -0,0 +1,82 @@
++import { Component, inject, signal } from '@angular/core';
++import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
++import { ActivatedRoute, Router, RouterLink } from '@angular/router';
++import { AuthService, ENLACE_INVALIDO } from '../../../core/services/auth.service';
++import { passwordsIgualesValidator } from './passwords-iguales.validator';
++
++type Estado = 'verificando' | 'valido' | 'invalido';
++
++// HU13: pantalla a la que lleva el enlace del correo (/restablecer?token=...)
++@Component({
++  imports: [ReactiveFormsModule, RouterLink],
++  selector: 'app-reset-password',
++  styleUrl: './reset-password.css',
++  templateUrl: './reset-password.html',
++})
++export class ResetPassword {
++  private fb = inject(FormBuilder);
++  private auth = inject(AuthService);
++  private router = inject(Router);
++  private route = inject(ActivatedRoute);
++
++  private token = this.route.snapshot.queryParamMap.get('token') ?? '';
++
++  readonly mensajeEnlaceInvalido = ENLACE_INVALIDO;
++
++  estado = signal<Estado>('verificando');
++  enviando = signal(false);
++  errorEnvio = signal('');
++
++  // Misma regla de contraseña que en el registro (HU01): 8 caracteres o más, con letras y números
++  form = this.fb.nonNullable.group(
++    {
++      password: ['', [Validators.required, Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d).{8,}$/)]],
++      confirmacion: ['', Validators.required],
++    },
++    { validators: passwordsIgualesValidator },
++  );
++
++  constructor() {
++    // HU13, escenario 3: al abrir el enlace se revisa si todavía sirve
++    if (!this.token) {
++      this.estado.set('invalido');
++      return;
++    }
++    this.auth.validarEnlace(this.token).subscribe((r) => {
++      this.estado.set(r.isSuccess ? 'valido' : 'invalido');
++    });
++  }
++
++  get passwordConError(): boolean {
++    const control = this.form.controls.password;
++    return control.invalid && control.touched;
++  }
++
++  get confirmacionConError(): boolean {
++    const control = this.form.controls.confirmacion;
++    return control.touched && (control.invalid || this.form.hasError('passwordsDistintas'));
++  }
++
++  guardar(): void {
++    if (this.form.invalid || this.enviando()) {
++      this.form.markAllAsTouched();
++      return;
++    }
++
++    this.enviando.set(true);
++    this.errorEnvio.set('');
++
++    this.auth.restablecerPassword(this.token, this.form.getRawValue().password).subscribe((r) => {
++      this.enviando.set(false);
++      if (r.isSuccess) {
++        // HU13, escenario 2: ya puede iniciar sesión con la contraseña nueva
++        this.router.navigate(['/login'], { queryParams: { clave: 'ok' } });
++      } else if (r.errorCode === '0410') {
++        // El enlace venció mientras la pantalla estaba abierta
++        this.estado.set('invalido');
++      } else {
++        this.errorEnvio.set(r.errorMessage);
++      }
++    });
++  }
++}
